@@ -1,0 +1,66 @@
+{
+  "workbench.activityBar.visible": false,
+  "workbench.statusBar.visible": false,
+  "editor.minimap.enabled": false,
+  "editor.wordWrap": "off",
+  "terminal.integrated.enabled": false,
+  "git.enabled": false,
+  "extensions.autoUpdate": false,
+  "extensions.ignoreRecommendations": true,
+  "telemetry.enableCrashReporting": false,
+  "telemetry.enableTelemetry": false,
+  "window.zoomLevel": 0,
+  "debug.toolBarLocation": "hidden",
+  "java.debug.settings.showHex": false,
+  "java.debug.settings.showLogicalStructure": false,
+  "java.debug.settings.maxStringLength": 0,
+  "java.debug.settings.vmArgs": "",
+  "java.configuration.updateBuildConfiguration": "interactive",
+  "json.schemas": [],
+  "http.proxySupport": "off",
+  "http.systemCertificates": false,
+  "editor.suggest.enabled": true,
+  "editor.quickSuggestions": {
+    "other": "on",
+    "comments": "on",
+    "strings": "on"
+  },
+  "editor.acceptSuggestionOnEnter": "on",
+  "editor.snippetSuggestions": "top",
+  "java.references.showJavadoc": false,
+  "java.completion.extraOptions": {
+    "showJavaDoc": false
+  },
+  "java.contentProvider.preferred": "basic",
+  "java.signatureHelp.enabled": true,
+  "workbench.view.extensions.enabled": false,
+  "workbench.edit.enabled": false,
+
+
+  "files.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/.config": true,
+    "**/.local": true,
+    "**/.bash_logout": true,
+    "**/.bashrc": true,
+    "**/.profile": true,
+    "**/.*": true
+  },
+  "search.exclude": {
+    "**/.git": true,
+    "**/.svn": true,
+    "**/.hg": true,
+    "**/CVS": true,
+    "**/.DS_Store": true,
+    "**/.config": true,
+    "**/.local": true,
+    "**/.bash_logout": true,
+    "**/.bashrc": true,
+    "**/.profile": true,
+    "**/.*": true
+  }
+}
