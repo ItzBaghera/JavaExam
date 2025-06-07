@@ -13,7 +13,8 @@ Questo progetto fornisce un ambiente d'esame isolato e controllato per esercizi 
     * **JavaDoc Integrata Disabilitata**: Gli studenti non possono visualizzare la documentazione API ufficiale all'interno dell'IDE.
     * **Autocomplete Abilitato**: Per supportare la produttività nella scrittura del codice, l'autocomplete (IntelliSense) è attivo.
     * **Explorer Pulito**: L'explorer dei file mostra solo i file di progetto rilevanti, nascondendo i file di configurazione interni.
-* **File di Progetto Pregenerato**: Ogni ambiente include un file `Main.java` precompilato con un punto di partenza per l'esame.
+* **File di Progetto Pregenerato**: Ognilog
+* ambiente include un file `Main.java` precompilato con un punto di partenza per l'esame.
 
 ## Requisiti
 

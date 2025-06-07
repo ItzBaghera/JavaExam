@@ -33,21 +33,13 @@
   },
   "java.contentProvider.preferred": "basic",
   "java.signatureHelp.enabled": true,
-  "workbench.view.extensions.enabled": false,
   "workbench.edit.enabled": false,
-
-
   "files.exclude": {
     "**/.git": true,
     "**/.svn": true,
     "**/.hg": true,
     "**/CVS": true,
     "**/.DS_Store": true,
-    "**/.config": true,
-    "**/.local": true,
-    "**/.bash_logout": true,
-    "**/.bashrc": true,
-    "**/.profile": true,
     "**/.*": true
   },
   "search.exclude": {
@@ -56,11 +48,6 @@
     "**/.hg": true,
     "**/CVS": true,
     "**/.DS_Store": true,
-    "**/.config": true,
-    "**/.local": true,
-    "**/.bash_logout": true,
-    "**/.bashrc": true,
-    "**/.profile": true,
     "**/.*": true
   }
 }
