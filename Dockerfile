@@ -45,7 +45,4 @@ COPY --chown=examuser:examuser ./settings.json /home/examuser/.local/share/code-
 # Espone la porta di Code-Server
 EXPOSE 8080
 
-# === CAMBIO CRUCIALE QUI: NESSUNA OPZIONE --password e percorso workspace esplicito ===
-# La password verrà passata tramite la variabile d'ambiente $PASSWORD da docker run.
-# L'ultimo argomento è il percorso del workspace all'interno del container.
 ENTRYPOINT ["code-server", "--bind-addr", "0.0.0.0:8080", "--auth", "password", "--disable-telemetry", "/home/examuser/project"]

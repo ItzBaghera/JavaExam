@@ -1,109 +1,138 @@
-# Ambiente d'Esame Java Sicuro (Code-Server su Docker)
+# Java Exam Code-Server Setup
 
-Questo progetto fornisce un ambiente d'esame isolato e controllato per esercizi di programmazione Java. È basato su [Code-Server](https://github.com/coder/code-server) (VS Code nel browser) containerizzato con Docker, con configurazioni specifiche per limitare l'accesso e prevenire comportamenti non etici durante gli esami.
+Questo progetto fornisce un ambiente d'esame sicuro e controllato per corsi di programmazione Java, utilizzando Docker e Safe Exam Browser (SEB) con Code-Server (una versione di VS Code basata su browser).
 
-## Caratteristiche Principali
+## Prerequisiti
 
-* **Ambiente Isolato**: Ogni studente opera all'interno di un container Docker dedicato, garantendo isolamento e riproducibilità.
-* **IDE Web (Code-Server)**: Gli studenti utilizzano un IDE completo e familiare direttamente nel browser, eliminando la necessità di installazioni locali.
-* **Sicurezza e Anti-Barare**:
-    * **Terminale Integrato Disabilitato**: Impedisce l'esecuzione di comandi di sistema o l'accesso a risorse esterne.
-    * **Funzionalità Git Disabilitate**: Non è possibile clonare/pushare codice da repository esterni.
-    * **Estensioni Bloccate**: Impedisce l'installazione o l'uso di estensioni non autorizzate.
-    * **JavaDoc Integrata Disabilitata**: Gli studenti non possono visualizzare la documentazione API ufficiale all'interno dell'IDE.
-    * **Autocomplete Abilitato**: Per supportare la produttività nella scrittura del codice, l'autocomplete (IntelliSense) è attivo.
-    * **Explorer Pulito**: L'explorer dei file mostra solo i file di progetto rilevanti, nascondendo i file di configurazione interni.
-* **File di Progetto Pregenerato**: Ognilog
-* ambiente include un file `Main.java` precompilato con un punto di partenza per l'esame.
+Prima di iniziare, assicurati di avere installato quanto segue sul tuo sistema (preferibilmente Windows, utilizzando Git Bash per gli script):
 
-## Requisiti
-
-* [Docker Desktop](https://www.docker.com/products/docker-desktop/) (per Windows/macOS) o [Docker Engine](https://docs.docker.com/engine/install/) (per Linux) installato e funzionante sul tuo sistema.
+* **Docker Desktop:** Assicurati che sia installato e che il motore Docker sia in esecuzione.
+* **Git Bash (su Windows):** Per eseguire gli script Bash.
+* **Python 3:** Con il gestore di pacchetti `pip`.
+* **Safe Exam Browser (SEB) Config Tool:** Installato sul tuo computer per generare i file di configurazione SEB. Gli allievi avranno bisogno di Safe Exam Browser installato sul loro PC.
 
 ## Struttura del Progetto
 
 ```
-JavaExam/
-├── Dockerfile              # Definisce l'immagine Docker dell'ambiente.
-├── Main.java               # File Java di template per l'esame.
-└── settings.json           # Impostazioni di Code-Server/VS Code per l'ambiente d'esame.
+.
+├── Dockerfile                  # Definisce l'immagine Docker di Code-Server con Java
+├── Main.java                   # Il file Java di esempio per gli esami
+├── settings.json               # Configurazione predefinita di Code-Server per gli allievi
+├── prepare_student_dirs.sh     # Script per creare le directory degli allievi sul host
+├── start_exams.sh              # Script per avviare i container Docker degli allievi
+├── stop_exams.sh               # Script per fermare e rimuovere i container
+├── generate_seb_configs.py     # Script Python per generare i file .seb personalizzati
+├── configurazione_base.seb     # File .seb di base (generato una volta con SEB Config Tool)
+└── seb_configs/                # Cartella dove verranno salvati i file .seb per ogni allievo
 ```
 
-## Come Costruire l'Immagine Docker
+## Guida Passo-Passo all'Utilizzo
 
-1.  **Naviga nella directory del progetto**: Apri il tuo terminale o prompt dei comandi e naviga nella directory `JavaExam` dove si trovano il `Dockerfile`, `Main.java` e `settings.json`.
+Segui questi passaggi per configurare e avviare l'ambiente d'esame.
 
+### Passo 1: Configurazione Iniziale e Preparazione dei File
+
+1.  **Clona o scarica il progetto:** Ottieni tutti i file del progetto nella tua directory di lavoro locale (es. `C:\Users\TuoUtente\IdeaProjects\JavaExam`).
+2.  **Verifica i file script:**
+    * Apri `start_exams.sh` e `generate_seb_configs.py` con un editor di testo.
+    * **Imposta l'indirizzo IP del tuo server:**
+        * Trova l'indirizzo IP del tuo computer (quello su cui esegui Docker). Apri il `Prompt dei comandi` (CMD) su Windows e digita `ipconfig`. Cerca l' "Indirizzo IPv4" della tua connessione di rete attiva (es. `192.168.1.100`).
+        * Modifica la riga `SERVER_IP="localhost"` in `start_exams.sh` in `SERVER_IP="<IL_TUO_IP_SERVER>"` (es. `SERVER_IP="192.168.1.100"`).
+        * Modifica la riga `server_ip = "192.168.1.100"` in `generate_seb_configs.py` con il tuo IP reale.
+    * Assicurati che `NUM_STUDENTS` e `STUDENT_START_PORT` siano uguali in entrambi gli script (`start_exams.sh` e `generate_seb_configs.py`).
+    * Assicurati che la `EXAM_PASSWORD` in `start_exams.sh` sia quella che vuoi usare per accedere a Code-Server.
+    * **Salva tutti gli script con terminazioni di riga LF e codifica UTF-8 (senza BOM).** Puoi farlo con editor come VS Code, Notepad++, Sublime Text.
+
+### Passo 2: Pulizia e Costruzione dell'Immagine Docker
+
+1.  **Apri Git Bash** (o un terminale WSL) nella directory principale del progetto (es. `C:\Users\TuoUtente\IdeaProjects\JavaExam`).
+2.  **Pulisci l'ambiente Docker esistente:**
     ```bash
-    cd /percorso/alla/tua/cartella/JavaExam
+    ./stop_exams.sh
+    rm -rf ./student_data
+    docker rmi java-exam-codeserver:latest
+    # Se ricevi "image in use", potresti dover rimuovere container orfani con:
+    # docker system prune -f
     ```
-
-2.  **Costruisci l'immagine Docker**: Esegui il seguente comando per costruire l'immagine. Questo processo potrebbe richiedere qualche minuto al primo avvio per scaricare tutte le dipendenze.
-
+3.  **Costruisci l'immagine Docker:**
     ```bash
     docker build -t java-exam-codeserver:latest .
     ```
-    * `-t java-exam-codeserver:latest`: Assegna il nome `java-exam-codeserver` e il tag `latest` all'immagine.
-    * `.`: Indica che il `Dockerfile` si trova nella directory corrente.
+    * Verifica che la costruzione avvenga senza errori.
 
-## Come Avviare l'Ambiente d'Esame per gli Studenti
+### Passo 3: Preparazione delle Directory Studente
 
-Per ogni studente o sessione d'esame, avvierai un container Docker separato.
-
-1.  **Avvia un container per uno studente**:
+1.  **Prepara le directory dati degli allievi:**
     ```bash
-    docker run -d -p 8080:8080 --name exam-student1 java-exam-codeserver:latest
+    ./prepare_student_dirs.sh
     ```
-    * `-d`: Avvia il container in modalità "detached" (in background).
-    * `-p 8080:8080`: Mappa la porta 8080 del tuo host (la tua macchina) alla porta 8080 all'interno del container.
-        * **IMPORTANTE**: Se devi avviare più container contemporaneamente (per più studenti), devi mappare su porte diverse sull'host per ogni container. Esempio per un secondo studente: `-p 8081:8080`.
-    * `--name exam-student1`: Assegna un nome univoco al container per facilitarne la gestione (es. `exam-nomecognome` o `exam-matricola`).
+    * Questo creerà una cartella `student_data` nella directory del progetto, con sottocartelle per ogni allievo (es. `student_data/allievo1`) e copierà `Main.java` e `settings.json` al loro interno.
+    * **Verifica manuale:** Controlla che le cartelle siano state create correttamente (es. `C:\Users\TuoUtente\IdeaProjects\JavaExam\student_data\allievo1`) e che contengano `Main.java` e `settings.json`. Assicurati che non ci siano nomi di cartelle strani come `allievo1;C`.
 
-2.  **Accedi all'IDE**: Una volta che il container è in esecuzione, lo studente può accedere all'IDE aprendo il browser all'indirizzo:
-    * `http://localhost:8080` (se stai usando la porta 8080 sul tuo host)
-    * `http://localhost:8081` (se hai mappato su 8081, ecc.)
-    * Oppure, se il server Docker è su una macchina remota, `http://<IP_del_server>:8080`.
+### Passo 4: Avvio degli Ambienti Code-Server
 
-## Gestione dei Container
-
-* **Visualizzare i container in esecuzione**:
+1.  **Avvia i container Code-Server per gli allievi:**
     ```bash
-    docker ps
+    ./start_exams.sh
     ```
-* **Fermare un container**:
-    ```bash
-    docker stop <nome_o_ID_del_container>
-    ```
-* **Rimuovere un container (dopo averlo fermato)**:
-    ```bash
-    docker rm <nome_o_ID_del_container>
-    ```
-* **Visualizzare tutti i container (anche quelli fermi)**:
-    ```bash
-    docker ps -a
-    ```
-* **Visualizzare i log di un container (utile per il debugging)**:
-    ```bash
-    docker logs <nome_o_ID_del_container>
-    ```
+    * Lo script ti mostrerà gli URL per ogni allievo (es. `http://<IL_TUO_IP_SERVER>:8080`, `http://<IL_TUO_IP_SERVER>:8081`).
+    * Verrà anche generato un file `exam_credentials.csv` con gli URL.
+    * **Verifica Docker:** Esegui `docker ps -a` per assicurarti che tutti i container `exam-allievoX` siano in stato `Up`.
 
-## Integrazione con Safe Exam Browser (SEB)
+### Passo 5: Test del Funzionamento di Code-Server (Senza SEB)
 
-Questo ambiente è progettato per essere utilizzato in combinazione con Safe Exam Browser (SEB) per un controllo totale dell'ambiente d'esame dello studente.
+1.  **Testa gli URL in un browser normale:**
+    * Apri un browser web (Chrome, Firefox, Edge) e vai a uno degli URL degli allievi (es. `http://<IL_TUO_IP_SERVER>:8080`).
+    * Ti verrà chiesta la password (`EXAM_PASSWORD` impostata in `start_exams.sh`).
+    * **Verifica:**
+        * L'URL nella barra degli indirizzi non deve contenere percorsi strani come `C:/Program Files/Git`.
+        * All'interno di Code-Server, dovresti vedere l'explorer sulla sinistra e il file `Main.java` (e `settings.json`) visibile e apribile.
+        * **Se in questo passaggio vedi ancora "Workspace does not exist" o percorsi errati nell'URL, ferma tutto e ricontrolla i passaggi precedenti con attenzione.** Il problema non è SEB, ma la configurazione di Docker.
 
-1.  **Configurazione SEB**: Configura SEB per avviare l'URL dell'istanza di Code-Server (es. `http://<IP_del_server>:8080`).
-2.  **Restrizioni SEB**: Utilizza le impostazioni di SEB per:
-    * Bloccare l'accesso a tutte le altre applicazioni.
-    * Disabilitare la navigazione web libera (limitare solo all'URL di Code-Server).
-    * Bloccare scorciatoie da tastiera comuni (es. `Alt+Tab`, `Ctrl+C`, `Ctrl+V`).
-    * (Opzionale) Disabilitare il tasto destro e le funzioni copia/incolla nel browser, a seconda delle tue esigenze d'esame.
+### Passo 6: Generazione dei File di Configurazione SEB (.seb)
 
-## Personalizzazione
+1.  **Crea il file `configurazione_base.seb`:**
+    * Apri l'applicazione **"SEB Configuration Tool"** sul tuo computer.
+    * Nella scheda **"General"**:
+        * `Use SEB settings file for...`: Seleziona `configuring a client`.
+        * `Settings password`: Imposta una password per proteggere il file di configurazione SEB stesso (es. `LaMiaPasswordSEB`).
+    * Nella scheda **"Browser"** (l'icona a mappamondo):
+        * `Start URL`: Inserisci l'URL del **primo allievo** (es. `http://<IL_TUO_IP_SERVER>:8080`).
+        * `Allow reload in exam`: `true`.
+        * `Enable browser context menu`: `false`.
+        * `Allow downloading files`: `false` (consigliato per esami).
+        * `Allow uploading files`: `false` (consigliato per esami).
+        * `Allow opening links in a new browser window`: `false`.
+    * Nella scheda **"User Interface"** (l'icona con 3 icone):
+        * `Show Quit Button`: Disabilita.
+        * `Quit Password`: **IMPOSTA UNA PASSWORD FORTE QUI!** Questa è la password per uscire da SEB (es. `UscitaSEB2025!`).
+    * Nella scheda **"Exam"** (l'icona a esagono con "E"):
+        * **`Enable URL Filtering`**: **ABILIITALO (spunta)!**
+        * `Filter Mode`: Seleziona `Allow to load only configured URLs`.
+        * `Permitted URLs`: Clicca `Add` e aggiungi l'URL del primo allievo (es. `http://<IL_TUO_IP_SERVER>:8080`).
+    * Nella scheda **"Hooked Keys"** (l'icona a chiave):
+        * **`Enable Alt+Tab`**: **Disabilita (togli la spunta)!**
+    * **Salva:** Vai su `File > Save Settings As...` e salva il file come **`configurazione_base.seb`** nella **stessa directory** dello script `generate_seb_configs.py`.
 
-* **`Dockerfile`**: Puoi modificare il `Dockerfile` per:
-    * Aggiornare la versione di Code-Server.
-    * Installare estensioni VS Code Java aggiuntive (ma valuta attentamente l'impatto sulla sicurezza).
-    * Cambiare la versione di JDK.
-* **`settings.json`**: Modifica questo file per affinare le impostazioni di Code-Server, ad esempio per consentire o bloccare ulteriormente funzionalità specifiche dell'IDE.
-* **`Main.java`**: Modifica questo file per personalizzare il punto di partenza dell'esame o includere istruzioni specifiche.
+2.  **Genera i file `.seb` per ogni allievo:**
+    * Nel tuo terminale Git Bash (nella directory del progetto), esegui lo script Python:
+        ```bash
+        python generate_seb_configs.py
+        ```
+    * Verrà creata una cartella `seb_configs/` contenente `esame_allievo1.seb`, `esame_allievo2.seb`, ecc.
+
+### Passo 7: Distribuzione e Test Finale con Safe Exam Browser
+
+1.  **Distribuisci:** Ogni allievo dovrà ricevere il proprio file `.seb` (es. `esame_allievo1.seb` per l'allievo 1). Assicurati che abbiano Safe Exam Browser installato.
+2.  **Simulazione Allievo:**
+    * Sul computer di un allievo (o un PC di test), fai doppio clic sul file `.seb` destinato a quell'allievo.
+    * SEB si avvierà e tenterà di connettersi all'URL di Code-Server.
+    * Inserisci la password di Code-Server (`EXAM_PASSWORD`).
+    * **Verifica finale:**
+        * L'interfaccia di Code-Server deve caricarsi correttamente, mostrando `Main.java` e il workspace.
+        * Prova a uscire da SEB (dovrebbe chiedere la `Quit Password`).
+        * Prova ad aprire altre applicazioni o navigare su altri siti (dovrebbe essere bloccato da SEB).
 
 ---
+
+Con questi passaggi, dovresti avere un ambiente d'esame Java con Code-Server e Safe Exam Browser completamente funzionale.
